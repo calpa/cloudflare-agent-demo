@@ -12,7 +12,9 @@ import { processToolCalls } from "./utils";
 import { tools, executions } from "./tools";
 import { env } from "cloudflare:workers";
 
-const workersai = createWorkersAI({ binding: env.AI });
+const workersai = createWorkersAI({ binding: env.AI, gateway: {
+  id: env.GATEWAY_ID,
+} });
 const model = workersai("@cf/meta/llama-3.2-1b-instruct");
 
 export class Chat extends AIChatAgent<Env> {
