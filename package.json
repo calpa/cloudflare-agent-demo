@@ -1,0 +1,18 @@
+{
+  "name": "cloudflare-agent-demo",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "agents": "^0.0.76",
+    "hono": "^4.7.8",
+    "workers-ai-provider": "^0.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.24",
+    "vitest": "3.0.9",
+    "wrangler": "^4.4.0"
+  }
+}
