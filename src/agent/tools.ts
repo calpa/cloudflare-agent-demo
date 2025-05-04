@@ -4,6 +4,7 @@
  */
 import { tool } from "ai";
 import { z } from "zod";
+import moment from "moment-timezone";
 
 const WeatherInfoSchema = z.object({
   city: z.string(),
@@ -16,17 +17,23 @@ type WeatherInfo = z.infer<typeof WeatherInfoSchema>;
 async function getWeatherInformation(city: string): Promise<WeatherInfo> {
   const endpoint = "https://api.open-meteo.com/v1/forecast";
   try {
+    console.log(`[getWeatherInformation] Looking up geolocation for city: ${city}`);
     const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
     const geoRes = await fetch(geoUrl);
+    console.log(`[getWeatherInformation] Geolocation API response status: ${geoRes.status}`);
     if (!geoRes.ok) throw new Error("Failed to fetch geolocation data");
     const geoData = await geoRes.json();
     const result = geoData?.results?.[0];
+    console.log(`[getWeatherInformation] Geolocation result:`, result);
     if (!result) throw new Error("No geolocation results found");
     const { latitude, longitude, name, country } = result;
     const url = `${endpoint}?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode`;
+    console.log(`[getWeatherInformation] Fetching weather data from: ${url}`);
     const weatherRes = await fetch(url);
+    console.log(`[getWeatherInformation] Weather API response status: ${weatherRes.status}`);
     if (!weatherRes.ok) throw new Error("Failed to fetch weather data");
     const weatherData = await weatherRes.json();
+    console.log(`[getWeatherInformation] Weather data:`, weatherData.current);
     const temp = weatherData.current?.temperature_2m;
     if (temp == null) throw new Error("No temperature in weather data");
     const info = {
@@ -34,15 +41,35 @@ async function getWeatherInformation(city: string): Promise<WeatherInfo> {
       country: country || "",
       temperature: String(temp),
     };
+    console.log(`[getWeatherInformation] Weather info to validate:`, info);
     const parsed = WeatherInfoSchema.safeParse(info);
-    if (!parsed.success) throw new Error("Weather info schema validation failed");
+    if (!parsed.success) {
+      console.error(`[getWeatherInformation] Schema validation failed:`, parsed.error);
+      throw new Error("Weather info schema validation failed");
+    }
+    console.log(`[getWeatherInformation] Successfully fetched weather info:`, parsed.data);
     return parsed.data;
-  } catch {
+  } catch (error) {
+    console.error(`[getWeatherInformation] Error:`, error);
     return {
       city,
       country: "",
       temperature: "0",
     };
+  }
+}
+
+async function getTimezoneForLocation(location: string): Promise<string | null> {
+  try {
+    const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1`;
+    const geoRes = await fetch(geoUrl);
+    if (!geoRes.ok) return null;
+    const geoData = await geoRes.json();
+    const result = geoData?.results?.[0];
+    if (!result) return null;
+    return result.timezone || null;
+  } catch {
+    return null;
   }
 }
 
@@ -69,7 +96,13 @@ const getLocalTime = tool({
   parameters: z.object({ location: z.string() }),
   execute: async ({ location }) => {
     console.log(`[getLocalTime] Invoked with location: ${location}`);
-    const now = new Date().toLocaleTimeString("en-US", { timeZone: "UTC" });
+    const timezone = await getTimezoneForLocation(location);
+    let now: string;
+    if (timezone) {
+      now = moment().tz(timezone).format("HH:mm:ss z");
+    } else {
+      now = moment().utc().format("HH:mm:ss [UTC]");
+    }
     console.log(`[getLocalTime] Returning time: ${now}`);
     return now;
   },
