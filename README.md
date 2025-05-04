@@ -3,8 +3,8 @@
 > **MVP Notice:**
 > This repository is the Minimum Viable Product (MVP) implementation of the Cloudflare AI Agent. It demonstrates the core backend capabilities for an AI-powered agent service running on Cloudflare Workers.
 
-![CI](https://img.shields.io/github/actions/workflow/status/calpaliu/cloudflare-agent-demo/ci.yml?style=flat-square&logo=github)
-![License](https://img.shields.io/github/license/calpaliu/cloudflare-agent-demo?style=flat-square)
+![CI](https://img.shields.io/github/actions/workflow/status/calpa/cloudflare-agent-demo/ci.yml?style=flat-square&logo=github)
+![License](https://img.shields.io/github/license/calpa/cloudflare-agent-demo?style=flat-square)
 ![Yarn](https://img.shields.io/badge/package%20manager-yarn-2ea44f?logo=yarn&style=flat-square)
 
 🚀 **Cloudflare Agent Demo (MVP)** is a backend-only AI service built on [Cloudflare Workers](https://developers.cloudflare.com/workers/), designed for scalable, fast, and serverless AI-powered APIs. The frontend is maintained in a separate repository.
